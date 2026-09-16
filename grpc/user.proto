@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "network-lab/grpc/userpb;userpb";
+
+service UserService {
+  // 一元调用（Unary）：请求一次，响应一次
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}
+
+message GetUserRequest {
+  int64 id = 1;
+}
+
+message GetUserResponse {
+  int64 id = 1;
+  string name = 2;
+}
