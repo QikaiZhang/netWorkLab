@@ -39,6 +39,34 @@
 | - | 协议总图 + 请求全过程 | - | [docs/architecture.md](docs/architecture.md) | - |
 | - | 校招面试题整理 | - | [docs/interview.md](docs/interview.md) | - |
 
+## 目录结构
+
+```text
+network-lab/
+├── tcp/        echo 与字节流（粘包/半包）实验
+├── udp/        echo 与超时重传实验
+├── http/       net/http 服务 + 基于 TCP 的最小 HTTP parser
+├── sse/        text/event-stream 推送 + EventSource 演示页
+├── tls/        自签证书生成 + HTTPS server/client
+├── websocket/  gorilla/websocket echo + Ping/Pong/Close
+├── dns/        LookupHost + 手工构造/解析 UDP DNS 报文
+├── icmp/       非特权 ICMP datagram socket ping
+├── proto/      .proto + 生成代码 + 序列化对比 JSON
+├── grpc/       .proto + 生成代码 + 最小 Unary 服务
+├── packet/     每个实验的抓包现场记录
+└── docs/       每个协议的概念文档 + 总图 + 面试题
+```
+
+git 历史就是学习路线：每个阶段在独立分支（`phase-N-*`）上开发，完成后合入 main；`git log` 从上到下即是推荐学习顺序。Phase 9/10 的 `*.pb.go` 为 protoc 生成代码，已提交以保证开箱可跑；修改 `.proto` 后重新生成：
+
+```bash
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+protoc --go_out=. --go_opt=module=network-lab proto/user.proto
+protoc --go_out=. --go_opt=module=network-lab \
+       --go-grpc_out=. --go-grpc_opt=module=network-lab grpc/user.proto
+```
+
 ## 如何运行
 
 所有实验都在本仓库根目录下以 `go run` 启动，先起 server（或只起 client），另开一个终端跑 client：
@@ -65,7 +93,7 @@ go run ./http/minparser/server
 go run ./http/minparser/client
 
 # Phase 4: SSE
-go run ./sse/server           # curl -N http://localhost:8082/events 或浏览器打开 http://localhost:8082/
+go run ./sse/server           # curl -N http://localhost:8083/events 或浏览器打开 http://localhost:8083/
 
 # Phase 5: TLS（先生成自签证书，gitignore 不入库）
 go run ./tls/gencert
