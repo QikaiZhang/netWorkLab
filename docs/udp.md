@@ -49,3 +49,27 @@ conn.WriteToUDP(data, remote)           // 向指定地址发一条数据报
 UDP 不负责重传，需要可靠时只能应用自己来：发送后设 deadline 等回复，超时就重发，重发若干次仍失败才放弃。这正是 `udp/retry` 实验做的事，也是 DNS 的做法。
 
 更深一步：如果"可靠 + 有序"全部要，就直接把 TCP/QUIC 拿来用。应用层重传只适合"偶尔丢一两个包可以接受"的场景——重传代价（应用复杂度）远比想象高。
+
+## 实验记录：udp/retry 的丢包与重传
+
+`udp/retry` server 随机丢弃约 40% 的数据报，client 每条消息最多重传 4 次。实测（完整输出见命令运行现场）：
+
+```text
+# client：msg-3 连续 3 次超时，第 4 次重传才成功
+send "msg-3" (attempt 1)
+  timeout, retrying...
+send "msg-3" (attempt 2)
+  timeout, retrying...
+send "msg-3" (attempt 3)
+  timeout, retrying...
+send "msg-3" (attempt 4)
+ok: "ack msg-3"
+
+# server 对应日志：同一个包被丢了 3 次
+DROP  "msg-3" from 127.0.0.1:50886
+DROP  "msg-3" from 127.0.0.1:50886
+DROP  "msg-3" from 127.0.0.1:50886
+RECV  "msg-3" from 127.0.0.1:50886 -> ack
+```
+
+这个实验同时暴露了应用层重传的经典难题：**server 可能收到重复的 msg-3**（第一次其实到了、只是 ack 回程被丢），所以重传协议必须处理"重复消息"——每条消息带编号，接收方去重，这就是 TCP 里 SEQ 序号干的事。做一次 UDP 重传实验，就能理解 TCP 为什么要设计那套序号 + 确认 + 重传。
