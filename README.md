@@ -60,7 +60,7 @@ go run ./udp/retry/server
 go run ./udp/retry/client
 
 # Phase 3: HTTP
-go run ./http/server          # curl http://localhost:8080/hello
+go run ./http/server          # curl http://localhost:8081/hello
 go run ./http/minparser/server
 go run ./http/minparser/client
 
@@ -120,7 +120,7 @@ Wireshark 有两套过滤器，语法不同，别混用：
 
 | 目的 | Display Filter |
 |---|---|
-| 指定端口的 TCP 流量 | `tcp.port == 8080` |
+| 指定端口的 TCP 流量 | `tcp.port == 8081` |
 | 指定端口的 UDP 流量 | `udp.port == 9002` |
 | 纯 SYN（第一次握手） | `tcp.flags.syn == 1 && tcp.flags.ack == 0` |
 | 所有带 SYN 的包（含 SYN+ACK） | `tcp.flags.syn == 1` |
@@ -137,7 +137,7 @@ Wireshark 有两套过滤器，语法不同，别混用：
 
 ```bash
 # 抓回环上 8080 端口，不解析主机名/端口，同时打印 ASCII
-sudo tcpdump -i lo0 -nn -A port 8080
+sudo tcpdump -i lo0 -nn -A port 8081
 
 # 抓 SYN（第一次握手）与 FIN
 sudo tcpdump -i lo0 -nn 'tcp[tcpflags] & (tcp-syn|tcp-fin) != 0'
